@@ -28,8 +28,9 @@ Epoch: 1
 # We have to remove certain patented algorithms from the openssl source
 # tarball with the hobble-openssl script which is included below.
 # The original openssl upstream tarball cannot be shipped in the .src.rpm.
-Source: openssl-%{version}-hobbled.tar.xz
-Source1: hobble-openssl
+#Source: openssl-%{version}-hobbled.tar.xz
+Source: openssl-%{version}.tar.gz
+#Source1: hobble-openssl
 Source2: Makefile.certificate
 Source6: make-dummy-cert
 Source7: renew-dummy-cert
@@ -89,6 +90,7 @@ Patch81: openssl-1.0.1-beta2-padlock64.patch
 Patch84: openssl-1.0.1i-trusted-first.patch
 Patch85: openssl-1.0.1e-arm-use-elf-auxv-caps.patch
 Patch89: openssl-1.0.1j-ephemeral-key-size.patch
+Patch300: openssl-1.0.1i-fix_secure_gentenv.patch
 
 License: OpenSSL
 Group: System Environment/Libraries
@@ -109,7 +111,7 @@ protocols.
 Summary: A general purpose cryptography library with TLS implementation
 Group: System Environment/Libraries
 Requires: ca-certificates >= 2008-5
-Requires: crypto-policies
+#Requires: crypto-policies
 # Needed obsoletes due to the base/lib subpackage split
 Obsoletes: openssl < 1:1.0.1-0.3.beta3
 Obsoletes: openssl-fips < 1:1.0.1e-28
@@ -159,7 +161,7 @@ from other formats to the formats used by the OpenSSL toolkit.
 
 # The hobble_openssl is called here redundantly, just to be sure.
 # The tarball has already the sources removed.
-%{SOURCE1} > /dev/null
+#%{SOURCE1} > /dev/null
 
 cp %{SOURCE12} %{SOURCE13} crypto/ec/
 
@@ -211,6 +213,7 @@ cp %{SOURCE12} %{SOURCE13} crypto/ec/
 %patch84 -p1 -b .trusted-first
 %patch85 -p1 -b .armcap
 %patch89 -p1 -b .ephemeral
+%patch300 -p1 -b .fix_secure_gentenv
 
 sed -i 's/SHLIB_VERSION_NUMBER "1.0.0"/SHLIB_VERSION_NUMBER "%{version}"/' crypto/opensslv.h
 
@@ -260,6 +263,11 @@ sslarch=linux-ppc64
 %ifarch ppc64le
 sslarch="linux-ppc64le"
 %endif
+%ifarch x86_64 amd64
+extra_flag="enable-ec_nistp_64_gcc_128"
+%else
+extra_flag=""
+%endif
 
 # ia64, x86_64, ppc are OK by default
 # Configure the build tree.  Override OpenSSL defaults with known-good defaults
@@ -269,7 +277,7 @@ sslarch="linux-ppc64le"
 	--prefix=%{_prefix} --openssldir=%{_sysconfdir}/pki/tls ${sslflags} \
 	--system-ciphers-file=%{_sysconfdir}/crypto-policies/back-ends/openssl.config \
 	zlib enable-camellia enable-seed enable-tlsext enable-rfc3779 \
-	enable-cms enable-md2 no-mdc2 no-rc5 no-ec2m no-gost no-srp \
+	enable-cms enable-md2 no-mdc2 no-rc5 no-ec2m enable-ec enable-ecdh enable-ecdsa enable-srp ${extra_flag} \
 	--with-krb5-flavor=MIT --enginesdir=%{_libdir}/openssl/engines \
 	--with-krb5-dir=/usr shared  ${sslarch} %{?!nofips:fips}
 

@@ -384,19 +384,6 @@ diff -up openssl-1.0.1j/crypto/ec/ecp_smpl.c.fips-ec openssl-1.0.1j/crypto/ec/ec
  	return &ret;
  	}
  
-@@ -187,6 +178,12 @@ int ec_GFp_simple_group_set_curve(EC_GRO
- 		return 0;
- 		}
- 
-+	if (BN_num_bits(p) < 256)
-+		{
-+		ECerr(EC_F_EC_GFP_SIMPLE_GROUP_SET_CURVE, EC_R_UNSUPPORTED_FIELD);
-+		return 0;
-+		}
-+
- 	if (ctx == NULL)
- 		{
- 		ctx = new_ctx = BN_CTX_new();
 diff -up openssl-1.0.1j/crypto/evp/m_ecdsa.c.fips-ec openssl-1.0.1j/crypto/evp/m_ecdsa.c
 --- openssl-1.0.1j/crypto/evp/m_ecdsa.c.fips-ec	2014-10-15 14:53:39.000000000 +0200
 +++ openssl-1.0.1j/crypto/evp/m_ecdsa.c	2014-10-16 13:25:20.732109235 +0200
